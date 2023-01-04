@@ -14,16 +14,18 @@
 
 <!-- Insert Code -->
 <?php
+
+$error_msg = '';
      
-	 if(isset($_POST['save info'])){
-		$name 		= $_POST['name'];
-		$email 		= $_POST['email'];
-		$phone		= $_POST['Phone'];
-		$pass 		= $_POST['pass'];
+	 if(isset($_POST['saveinfo'])){
+		$name = $_POST['name'];
+		$email = $_POST['email'];
+		$phone= $_POST['phone'];
+		$pass = $_POST['pass'];
 
 		$upass = sha1($pass);
 
-		$sql2= " INSERT INTO users(name,email,phone,pass) VAlUES ('$name', '$email', '$upass')"; 
+		$sql2= " INSERT INTO users(name,email,Phone,pass) VAlUES ('$name', '$email','$phone', '$upass')"; 
 		$res2= mysqli_query($db,$sql2);
 
 		if($res2){
@@ -36,6 +38,53 @@
 
 ?>	 
 
+<!-- Delete Code -->
+<?php
+     
+	 if(isset($_GET['id'])){
+		$del_id = $_GET['id'];
+
+		$sql3= "DELETE FROM users WHERE id='$del_id'";
+		$res3= mysqli_query($db,$sql3);
+
+		if($res3){
+			header('Location: index.php');
+		}
+		else{
+			echo 'Delete Error!';
+		}
+	 }
+
+?>
+
+<!-- Update code -->
+<?php 
+
+	if(isset($_POST['updateinfo'])){
+		$name = $_POST['name'];
+		$email = $_POST['email'];
+		$phone = $_POST['phone'];
+		$pass = $_POST['pass'];
+		$role = $_POST['role'];
+		$id = $_POST['editid'];
+
+		if(!empty($pass)){
+			$pass = sha1($pass);
+			$sql4 = "UPDATE users SET name='$name', email='$email', phone='$phone', pass='$pass', role='$role'  WHERE id='$id'";
+		}
+		if(empty($pass)){
+			$sql4 = "UPDATE users SET name='$name', email='$email', phone='$phone', role='$role' WHERE id='$id'";
+		}
+		$res4 = mysqli_query($db,$sql4);
+
+		if($res4){
+			header('Location: index.php');
+		}
+		else{
+			echo 'Edit error!';
+		}	
+	}
+?>
 
 
 
@@ -59,9 +108,13 @@
                     <h4>Add a new user</h4>
                     <form method="post" class="my-5">
                         <div class="mb-3">
-                            <label for="username" class="form-label">Enter your name</label>
-                            <input type="text" name="username" class="form-control" id="username" placeholder="Fullname">
+                            <label for="name" class="form-label">Enter your name</label>
+                            <input type="text" name="name" class="form-control" id="name" placeholder="Fullname">
                         </div>
+						<?php 
+						     echo '<small class="text-danger">'.$error_msg.'</small>';
+						
+						?>
                         <div class="mb-3">
 					  <label for="email" class="form-label">Email address</label>
 					  <input type="email" name="email" class="form-control" id="email" placeholder="name@example.com">
@@ -77,22 +130,45 @@
 					</div>
 					<input type="submit" name="saveinfo" class="btn btn-md btn-info" value="Add new user">
 				</form>
+                  
+				<!-- Update code form part -->
+				<?php
 
+					if(isset($_GET['edit_id'])){
+
+					$editid = $_GET['edit_id'];
+
+					$sql = "SELECT * FROM users WHERE id='$editid'";
+					$res = mysqli_query($db,$sql);
+
+					$row = mysqli_fetch_assoc($res);
+					$id = $row['id'];
+					$name = $row['name'];
+					$email = $row['email'];
+					$phone 	= $row['Phone'];
+					$pass = $row['pass'];
+					$role= $row['role'];
+					
+
+				?>
 
                 <h3>Update User</h3>	
 					<form class="my-5" method="POST">
 						<div class="mb-3">
-						<label for="username" class="form-label">Enter your name</label>
-						<input type="text" name="username" value="" class="form-control" id="usernameu" placeholder="Fullname">
+						<label for="name" class="form-label">Enter your name</label>
+						<input type="text" name="name" value="<?php echo $name;?>" class="form-control" id="nameu" placeholder="Fullname">
+						<?php 
+							echo '<small class="text-danger">'.$error_msg.'</small>';
+						?>
 						
 						</div>
 						<div class="mb-3">
 						<label for="email" class="form-label">Email address</label>
-						<input type="email" name="email" value="" class="form-control" id="emailu" placeholder="name@example.com">
+						<input type="email" name="email" value="<?php echo $email;?>" class="form-control" id="emailu" placeholder="name@example.com">
 						</div>
 						<div class="mb-3">
                             <label for="phone" class="form-label"> Phone No</label>
-                            <input type="text" name="phone" class="form-control" id="phoneu" placeholder="+8801XXXXXXXXX ">
+                            <input type="text" name="phone" value="<?php echo $phone;?>" class="form-control" id="phoneu" placeholder="+8801XXXXXXXXX ">
                         </div>
 						<div class="mb-3">
 						<label for="password" class="form-label">Set New Password</label>
@@ -100,22 +176,22 @@
 						
 						<label>Set your role</label>
 						<select class="form-control" name="role">
-							<!--  -->
+							<option value="0" <?php if($role == 0)echo 'selected';?>>Subscriber</option>
+							<option value="1" <?php if($role == 1)echo 'selected';?>>Editor</option>
+							<option value="2" <?php if($role == 2)echo 'selected';?>>Admin</option>
 						</select>
 
-						<label>Set user status</label>
-						<select class="form-control" name="status">
-							<option value="1">Active</option>
-							<option value="0" >Inactive</option>
-						</select>
 
-						<input type="hidden" value="" name="editid">
+						<input type="hidden" value="<?php echo $editid;?>" name="editid">
 
 						</div>
 						<input type="submit" name="updateinfo" class="btn btn-md btn-info" value="Add new user" >
 					</form>
+                      <?php
+					  
+					}
 
-                        
+					?>
                    
                 </div>
 
@@ -146,6 +222,7 @@
 						$id = $row['id'];
 						$name =$row['name'];
 						$email =$row['email'];
+						$phone = $row['Phone'];
 						$pass = $row['pass'];
 						$role= $row['role'];
 						$serial++;
